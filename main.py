@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 import gym
+from QLearningAlgorithm import QLearning
 
 env = gym.make("FrozenLake-v0")
-max_episodes = 3
-max_steps = 30
+Q = QLearning(env, alpha=0.8, gamma=0.95)
+Q.train(totalEpisodes=15000, maxSteps=99)
+print(Q.Qtable)
+print("Average score:", Q.score)
+print("")
 
-for i in range(max_episodes):
-    observation = env.reset()
-    env.render()
-    for t in range(max_steps):
-        print("")
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        env.render()
-        print("new state:", observation)
-        print("reward:", reward)
-        if(done):
-            print("Episode finished after {} timesteps".format(t+1))
+#Tests
+numberOfTests = 5
+for i in range(numberOfTests):
+    print("Test number", i+1)
+    state = env.reset()
+    for t in range(100):
+        state, reward, done, info = env.step(Q.chooseAction(state))
+        if done:
+            env.render()
+            print("Number of steps: {} \n".format(t))
             break
 env.close()

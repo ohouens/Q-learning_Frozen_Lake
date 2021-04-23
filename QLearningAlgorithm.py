@@ -9,23 +9,28 @@ class QLearning:
         self.Qtable = np.zeros((env.observation_space.n, env.action_space.n))
         self.alpha = alpha
         self.gamma = gamma
+        self.score = 0
         
-    def train(self, epsilon=0.9, max_episodes=10,  max_steps=100):
-        for i in range(max_episodes):
+    def train(self, totalEpisodes=10, maxSteps=100, maxEpsilon=1, minEpsilon=0.01, decayRate=0.005):
+        rewards = []
+        epsilon = maxEpsilon
+        for episode in range(totalEpisodes):
             state = self.env.reset()
-            for t in range(max_steps):
+            totalRewards = 0
+            for t in range(maxSteps):
                 oldState = state
-                if random.random() <= epsilon:
+                if random.uniform(0,1) <= epsilon:
                     action = self.env.action_space.sample()
                 else:
                     action = np.argmax(self.Qtable[state,:])
                 state, reward, done, info = self.env.step(action)
                 self.Qtable[oldState, action] += self.alpha*(reward+self.gamma*np.max(self.Qtable[state,:])-self.Qtable[oldState, action])
+                totalRewards += reward
                 if(done):
                     break
-            #decay epsilon greedy
-            r = max((max_episodes-i)/max_episodes, 0)
-            epsilon = (epsilon - 0.1)*r + 0.1
+            epsilon = minEpsilon + (maxEpsilon - minEpsilon)*np.exp(-decayRate*episode)
+            rewards.append(totalRewards)
+        self.score = sum(rewards)/totalEpisodes
     
     def chooseAction(self,state):
         return np.argmax(self.Qtable[state,:])
